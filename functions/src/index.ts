@@ -78,3 +78,4 @@ export const sendTaskNotifications = onSchedule('every 1 minutes', async () => {
   await Promise.all(sends);
   await batch.commit().catch(console.error);
 });
+
