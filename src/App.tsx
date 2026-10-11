@@ -17,7 +17,8 @@ import { DayProgressSummary } from './components/DayProgressSummary';
 import { VerticalTimeline } from './components/VerticalTimeline';
 import { MonthCalendarView } from './components/MonthCalendarView';
 import { SettingsScreen } from './components/SettingsScreen';
-import { FocusScreen } from './components/FocusScreen';
+import { FocusScreen, FocusColorTheme } from './components/FocusScreen';
+import { Plus } from 'lucide-react';
 import { BoxBreatheScreen } from './components/BoxBreatheScreen';
 import { ClockScreen } from './components/ClockScreen';
 import { BottomNav } from './components/BottomNav';
@@ -33,6 +34,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  const [focusTheme, setFocusTheme] = useState<FocusColorTheme>('black');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState<ActiveTab>('agenda');
@@ -94,14 +96,22 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [taskToDelete, isTaskModalOpen, detailsTask, isSearchOpen]);
 
-  // Update theme class on HTML element & color scheme
+  // Resolve the theme ("system" follows the phone's setting) and apply it to the HTML element.
+  const [systemDark, setSystemDark] = useState(() => window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false);
+  useEffect(() => {
+    const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
+    if (!mq) return;
+    const onChange = (e: MediaQueryListEvent) => setSystemDark(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  const isDark = preferences.theme === 'dark' || (preferences.theme === 'system' && systemDark);
+
   useEffect(() => {
     const root = document.documentElement;
-    const isDark = preferences.theme === 'dark';
-
     root.classList.toggle('dark', isDark);
     root.style.colorScheme = isDark ? 'dark' : 'light';
-  }, [preferences.theme]);
+  }, [isDark]);
 
   const handleLoginSuccess = (user: User) => {
     setCurrentUser(user);
@@ -260,6 +270,23 @@ export default function App() {
     );
   }
 
+  // Task shown on the Foco screen: the pending task happening now, else the next one today.
+  const focusTaskTitle = (() => {
+    const todayISO = formatDateToISO(new Date());
+    const now = new Date().getHours() * 60 + new Date().getMinutes();
+    const toMin = (t: string) => {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    };
+    const today = tasks
+      .filter((t) => t.date === todayISO && t.status !== 'completed' && t.hasSpecificTime)
+      .sort((a, b) => toMin(a.startTime) - toMin(b.startTime));
+    const current = today.find((t) => toMin(t.startTime) <= now && now < toMin(t.endTime));
+    if (current) return `Agora: ${current.title}`;
+    const next = today.find((t) => toMin(t.startTime) > now);
+    return next ? `Próxima: ${next.title} às ${next.startTime}` : undefined;
+  })();
+
   // Filter tasks for selected day to show in progress bar
   const selectedDateISO = formatDateToISO(selectedDate);
   const dayTasks = tasks.filter((t) => t.date === selectedDateISO);
@@ -267,7 +294,7 @@ export default function App() {
   return (
     <div
       className={`h-screen w-screen overflow-hidden ${
-        preferences.theme === 'dark' ? 'bg-[#0A0A0A] text-white' : 'bg-[#F7F7F7] text-[#0A0A0A]'
+        isDark ? 'bg-[#0A0A0A] text-white' : 'bg-[#F7F7F7] text-[#0A0A0A]'
       } flex flex-col`}
     >
       {/* Main Container Wrapper / Centering area */}
@@ -276,15 +303,16 @@ export default function App() {
         <div
           className="flex flex-col w-full transition-all max-w-2xl h-full lg:h-[90vh] lg:max-h-[920px] bg-white dark:bg-[#0A0A0A] border-x lg:border border-[#E5E5E5] dark:border-[#262626] lg:rounded-3xl overflow-hidden relative shadow-xl"
         >
-          {/* Header */}
-          <div className="shrink-0">
-            <TimelineHeader
-              onOpenNewTask={handleOpenNewTask}
-              onOpenClock={() => setActiveTab('relogio')}
-              onOpenCalendar={() => setActiveTab('calendario')}
-              onGoHome={() => setActiveTab('agenda')}
-            />
-          </div>
+          {/* Header (hidden in Foco, which is full screen) */}
+          {activeTab !== 'foco' && (
+            <div className="shrink-0">
+              <TimelineHeader
+                onOpenClock={() => setActiveTab('relogio')}
+                onOpenCalendar={() => setActiveTab('calendario')}
+                onGoHome={() => setActiveTab('agenda')}
+              />
+            </div>
+          )}
 
           {/* Scrollable Content Area */}
           <div className="flex-1 min-h-0 overflow-y-auto flex flex-col">
@@ -317,7 +345,9 @@ export default function App() {
             )}
 
             {/* Tab 2: Modo Foco */}
-            {activeTab === 'foco' && <FocusScreen />}
+            {activeTab === 'foco' && (
+              <FocusScreen currentTaskTitle={focusTaskTitle} onThemeChange={setFocusTheme} />
+            )}
 
             {/* Tab 3: Respirar */}
             {activeTab === 'respirar' && <BoxBreatheScreen />}
@@ -355,8 +385,21 @@ export default function App() {
             )}
           </div>
 
-          {/* Bottom Tab Navigation */}
-          <div className="shrink-0">
+          {/* Floating new-task button on the agenda */}
+          {activeTab === 'agenda' && (
+            <button
+              type="button"
+              onClick={handleOpenNewTask}
+              aria-label="Nova tarefa"
+              title="Nova tarefa"
+              className="absolute right-4 bottom-24 z-30 w-14 h-14 rounded-full bg-[#0A0A0A] dark:bg-white text-white dark:text-[#0A0A0A] flex items-center justify-center shadow-lg shadow-black/20 hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+            >
+              <Plus className="w-6 h-6 stroke-[2.4]" />
+            </button>
+          )}
+
+          {/* Bottom Tab Navigation (dark while the Foco screen uses a dark theme) */}
+          <div className={`shrink-0 ${activeTab === 'foco' && focusTheme !== 'paper' ? 'dark' : ''}`}>
             <BottomNav activeTab={activeTab} onChangeTab={(tab) => setActiveTab(tab)} user={currentUser} />
           </div>
         </div>

@@ -4,11 +4,9 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import {
-  MotivacaoDemo,
   AgendaDemo,
   FocoDemo,
   RespirarDemo,
-  RelogioDemo,
 } from './OnboardingDemos';
 import { PedroSignature } from './PedroSignature';
 
@@ -37,9 +35,9 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   onComplete,
   onClose,
 }) => {
-  // 7 TELAS DO ONBOARDING
+  // 5 TELAS DO ONBOARDING
   const [currentStep, setCurrentStep] = useState(0);
-  const totalSteps = 7;
+  const totalSteps = 5;
 
   // Navegação por teclado
   useEffect(() => {
@@ -121,7 +119,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               </button>
             ) : (
               <span className="text-[clamp(9px,1.2vh,10px)] font-bold tracking-widest uppercase text-neutral-400">
-                01 · Apresentação
+                Apresentação · 1 de 5
               </span>
             )}
 
@@ -158,13 +156,13 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                     Criei o Simpls por um motivo muito pessoal: queria encontrar uma forma mais simples de organizar meus dias e cuidar melhor de mim no meio de tanta coisa acontecendo.
                   </p>
                   <p>
-                    E foi assim que essa ideia começou.
+                    Às vezes, são tantas tarefas e horários que até o simples parece difícil. Eu queria enxergar melhor meu dia, focar no que importava e encontrar espaço para respirar.
                   </p>
                 </div>
               </div>
 
               {/* Cartão Conceitual Editorial */}
-              <div className="my-auto py-[clamp(0.25rem,1vh,0.5rem)] shrink-0">
+              <div className="mt-[clamp(1rem,3vh,1.75rem)] mb-auto py-[clamp(0.25rem,1vh,0.5rem)] shrink-0">
                 <div className="p-[clamp(0.75rem,2vh,1.15rem)] rounded-2xl bg-neutral-100 dark:bg-[#141414] border border-neutral-200 dark:border-[#222222]">
                   <span className="text-[clamp(8.5px,1.1vh,10px)] font-bold tracking-widest uppercase text-neutral-400 dark:text-neutral-500 block mb-1">
                     Filosofia
@@ -182,48 +180,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                   onClick={handleNext}
                   className="w-full py-[clamp(0.65rem,1.8vh,0.85rem)] bg-[#0A0A0A] dark:bg-white text-white dark:text-[#0A0A0A] font-semibold text-[clamp(0.75rem,1.6vh,0.875rem)] rounded-full hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-sm flex items-center justify-center gap-2"
                 >
-                  <span>Conhecer a história</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* TELA 2 — A MOTIVAÇÃO */}
-          {currentStep === 1 && (
-            <div className="flex flex-col h-full justify-between animate-fadeIn overflow-hidden">
-              <div className="shrink-0 pt-[clamp(0.2rem,0.8vh,0.5rem)]">
-                <span className="text-[clamp(9px,1.2vh,10.5px)] font-bold tracking-widest uppercase text-neutral-400">
-                  A Origem
-                </span>
-
-                <h2 className="text-[clamp(1.35rem,3.4vh,1.85rem)] font-extrabold tracking-tight text-[#0A0A0A] dark:text-white mt-[clamp(0.15rem,0.6vh,0.4rem)] mb-[clamp(0.25rem,0.8vh,0.5rem)] leading-tight">
-                  Eu precisava de mais clareza.
-                </h2>
-
-                <div className="space-y-[clamp(0.2rem,0.6vh,0.4rem)] text-[clamp(0.7rem,1.6vh,0.825rem)] text-neutral-600 dark:text-neutral-300 leading-relaxed">
-                  <p>
-                    Às vezes, são tantas tarefas e horários que até o simples parece difícil. Eu queria enxergar melhor meu dia, focar no que importava e encontrar espaço para respirar.
-                  </p>
-                  <p className="text-[clamp(0.65rem,1.4vh,0.75rem)] text-neutral-500 dark:text-neutral-400">
-                    Comecei a construir o Simpls para mim e decidi transformá-lo em algo que outras pessoas pudessem usar.
-                  </p>
-                </div>
-              </div>
-
-              {/* Demonstração visual compacta no centro */}
-              <div className="my-auto flex-1 min-h-0 flex items-center justify-center overflow-hidden py-[clamp(0.2rem,0.6vh,0.4rem)]">
-                <MotivacaoDemo />
-              </div>
-
-              {/* Botão Inferior sempre visível */}
-              <div className="shrink-0 pt-[clamp(0.25rem,0.8vh,0.5rem)] pb-[clamp(0.75rem,2vh,1.25rem)]">
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="w-full py-[clamp(0.65rem,1.8vh,0.85rem)] bg-[#0A0A0A] dark:bg-white text-white dark:text-[#0A0A0A] font-semibold text-[clamp(0.75rem,1.6vh,0.875rem)] rounded-full hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-sm flex items-center justify-center gap-2"
-                >
-                  <span>Veja como funciona</span>
+                  <span>Ver como funciona</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -231,11 +188,11 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           )}
 
           {/* TELA 3 — AGENDA */}
-          {currentStep === 2 && (
+          {currentStep === 1 && (
             <div className="flex flex-col h-full justify-between animate-fadeIn overflow-hidden">
               <div className="shrink-0 pt-[clamp(0.2rem,0.8vh,0.5rem)]">
                 <span className="text-[clamp(9px,1.2vh,10.5px)] font-bold tracking-widest uppercase text-neutral-400">
-                  01 — Organização
+                  Organização · 2 de 5
                 </span>
 
                 <h2 className="text-[clamp(1.35rem,3.4vh,1.85rem)] font-extrabold tracking-tight text-[#0A0A0A] dark:text-white mt-[clamp(0.15rem,0.6vh,0.4rem)] mb-[clamp(0.15rem,0.5vh,0.35rem)] leading-tight">
@@ -248,7 +205,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               </div>
 
               {/* Demonstração exata da Agenda do app */}
-              <div className="my-auto flex-1 min-h-0 flex items-center justify-center overflow-hidden py-[clamp(0.2rem,0.6vh,0.4rem)]">
+              <div className="flex-1 min-h-0 flex items-start justify-center overflow-hidden pt-[clamp(1rem,3vh,2rem)]">
                 <AgendaDemo />
               </div>
 
@@ -267,11 +224,11 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           )}
 
           {/* TELA 4 — FOCO */}
-          {currentStep === 3 && (
+          {currentStep === 2 && (
             <div className="flex flex-col h-full justify-between animate-fadeIn overflow-hidden">
               <div className="shrink-0 pt-[clamp(0.2rem,0.8vh,0.5rem)]">
                 <span className="text-[clamp(9px,1.2vh,10.5px)] font-bold tracking-widest uppercase text-neutral-400">
-                  02 — Concentração
+                  Concentração · 3 de 5
                 </span>
 
                 <h2 className="text-[clamp(1.35rem,3.4vh,1.85rem)] font-extrabold tracking-tight text-[#0A0A0A] dark:text-white mt-[clamp(0.15rem,0.6vh,0.4rem)] mb-[clamp(0.15rem,0.5vh,0.35rem)] leading-tight">
@@ -284,7 +241,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               </div>
 
               {/* Demonstração exata do modo Foco do app */}
-              <div className="my-auto flex-1 min-h-0 flex items-center justify-center overflow-hidden py-[clamp(0.2rem,0.6vh,0.4rem)]">
+              <div className="flex-1 min-h-0 flex items-start justify-center overflow-hidden pt-[clamp(1rem,3vh,2rem)]">
                 <FocoDemo />
               </div>
 
@@ -303,11 +260,11 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           )}
 
           {/* TELA 5 — RESPIRAR */}
-          {currentStep === 4 && (
+          {currentStep === 3 && (
             <div className="flex flex-col h-full justify-between animate-fadeIn overflow-hidden">
               <div className="shrink-0 pt-[clamp(0.2rem,0.8vh,0.5rem)]">
                 <span className="text-[clamp(9px,1.2vh,10.5px)] font-bold tracking-widest uppercase text-neutral-400">
-                  03 — Pausa
+                  Pausa · 4 de 5
                 </span>
 
                 <h2 className="text-[clamp(1.35rem,3.4vh,1.85rem)] font-extrabold tracking-tight text-[#0A0A0A] dark:text-white mt-[clamp(0.15rem,0.6vh,0.4rem)] mb-[clamp(0.15rem,0.5vh,0.35rem)] leading-tight">
@@ -320,7 +277,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               </div>
 
               {/* Demonstração exata do Box Breathe do app */}
-              <div className="my-auto flex-1 min-h-0 flex items-center justify-center overflow-hidden py-[clamp(0.2rem,0.6vh,0.4rem)]">
+              <div className="flex-1 min-h-0 flex items-start justify-center overflow-hidden pt-[clamp(1rem,3vh,2rem)]">
                 <RespirarDemo />
               </div>
 
@@ -338,44 +295,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             </div>
           )}
 
-          {/* TELA 6 — RELÓGIO */}
-          {currentStep === 5 && (
-            <div className="flex flex-col h-full justify-between animate-fadeIn overflow-hidden">
-              <div className="shrink-0 pt-[clamp(0.2rem,0.8vh,0.5rem)]">
-                <span className="text-[clamp(9px,1.2vh,10.5px)] font-bold tracking-widest uppercase text-neutral-400">
-                  04 — Tempo
-                </span>
-
-                <h2 className="text-[clamp(1.35rem,3.4vh,1.85rem)] font-extrabold tracking-tight text-[#0A0A0A] dark:text-white mt-[clamp(0.15rem,0.6vh,0.4rem)] mb-[clamp(0.15rem,0.5vh,0.35rem)] leading-tight">
-                  Use o tempo a seu favor.
-                </h2>
-
-                <p className="text-[clamp(0.7rem,1.6vh,0.825rem)] text-neutral-600 dark:text-neutral-300 leading-relaxed">
-                  O Relógio reúne as ferramentas de tempo do Simpls em um só lugar, para acompanhar sua rotina sem complicação.
-                </p>
-              </div>
-
-              {/* Demonstração exata do Relógio do app */}
-              <div className="my-auto flex-1 min-h-0 flex items-center justify-center overflow-hidden py-[clamp(0.2rem,0.6vh,0.4rem)]">
-                <RelogioDemo />
-              </div>
-
-              {/* Botão Inferior sempre visível */}
-              <div className="shrink-0 pt-[clamp(0.25rem,0.8vh,0.5rem)] pb-[clamp(0.75rem,2vh,1.25rem)]">
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="w-full py-[clamp(0.65rem,1.8vh,0.85rem)] bg-[#0A0A0A] dark:bg-white text-white dark:text-[#0A0A0A] font-semibold text-[clamp(0.75rem,1.6vh,0.875rem)] rounded-full hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-sm flex items-center justify-center gap-2"
-                >
-                  <span>Continuar</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* TELA 7 — CONVITE FINAL & CADASTRO */}
-          {currentStep === 6 && (
+          {currentStep === 4 && (
             <div className="flex flex-col h-full justify-between animate-fadeIn overflow-hidden">
               <div className="shrink-0 pt-[clamp(0.25rem,1vh,0.75rem)]">
                 <span className="font-extrabold tracking-widest text-[clamp(10.5px,1.4vh,12px)] text-[#0A0A0A] dark:text-white uppercase">

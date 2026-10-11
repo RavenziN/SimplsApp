@@ -240,6 +240,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   onClick={() => fileInputRef.current?.click()}
                   className="absolute bottom-0 right-0 p-1.5 bg-[#0A0A0A] dark:bg-white text-white dark:text-[#0A0A0A] rounded-full shadow-md hover:scale-105 transition-all cursor-pointer"
                   title="Alterar foto"
+                  aria-label="Alterar foto"
                 >
                   <Camera className="w-3.5 h-3.5" />
                 </button>
@@ -259,13 +260,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 onChange={handlePhotoChange}
                 className="hidden"
               />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="px-3 py-2 bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#262626] rounded-xl text-xs font-semibold text-[#0A0A0A] dark:text-white hover:bg-[#F7F7F7] dark:hover:bg-[#1A1A1A] transition-colors cursor-pointer"
-              >
-                Alterar foto
-              </button>
               {user.photoUrl && (
                 <button
                   type="button"
@@ -282,38 +276,34 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         {/* 2. APARÊNCIA & ÍCONE DO APLICATIVO */}
         <div className="space-y-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-[#737373] dark:text-neutral-400 px-1">
-            Aparência & Identidade
+            Aparência
           </h3>
 
           {/* Tema Claro / Escuro */}
           <div className="p-3.5 bg-[#F7F7F7] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#262626] rounded-2xl flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Sun className="w-4 h-4 text-[#737373] dark:text-neutral-400" />
-              <span className="text-xs font-semibold text-[#0A0A0A] dark:text-white">Tema do aplicativo</span>
+              <span className="text-xs font-semibold text-[#0A0A0A] dark:text-white">Tema</span>
             </div>
             <div className="flex items-center gap-1 p-0.5 bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#262626] rounded-xl">
-              <button
-                type="button"
-                onClick={() => onUpdatePreferences({ theme: 'light' })}
-                className={`px-3.5 py-1.5 text-xs font-medium rounded-lg cursor-pointer transition-all ${
-                  preferences.theme === 'light'
-                    ? 'bg-[#0A0A0A] text-white shadow-xs'
-                    : 'text-[#737373] dark:text-neutral-400 hover:text-[#0A0A0A] dark:hover:text-white'
-                }`}
-              >
-                Claro
-              </button>
-              <button
-                type="button"
-                onClick={() => onUpdatePreferences({ theme: 'dark' })}
-                className={`px-3.5 py-1.5 text-xs font-medium rounded-lg cursor-pointer transition-all ${
-                  preferences.theme === 'dark'
-                    ? 'bg-white text-[#0A0A0A] shadow-xs'
-                    : 'text-[#737373] dark:text-neutral-400 hover:text-[#0A0A0A] dark:hover:text-white'
-                }`}
-              >
-                Escuro
-              </button>
+              {([
+                ['light', 'Claro'],
+                ['dark', 'Escuro'],
+                ['system', 'Automático'],
+              ] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => onUpdatePreferences({ theme: value })}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg cursor-pointer transition-all ${
+                    preferences.theme === value
+                      ? 'bg-[#0A0A0A] dark:bg-white text-white dark:text-[#0A0A0A] shadow-xs'
+                      : 'text-[#737373] dark:text-neutral-400 hover:text-[#0A0A0A] dark:hover:text-white'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -397,9 +387,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           >
             <div className="flex items-center gap-3">
               <LogOut className="w-4 h-4" />
-              <span>Encerrar sessão</span>
+              <span>Sair da conta</span>
             </div>
-            <span>Sair</span>
           </button>
         </div>
       </div>
