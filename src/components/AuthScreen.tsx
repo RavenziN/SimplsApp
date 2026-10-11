@@ -40,15 +40,22 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const firebaseUser = result.user;
+      const users = getStoredUsers();
+      const storedUser = users.find((u) => u.id === firebaseUser.uid);
+
+      // Keep a photo the user uploaded in the app; otherwise use the Google one.
+      const googlePhoto = firebaseUser.photoURL || firebaseUser.providerData.find((p) => p.photoURL)?.photoURL;
+      const photoUrl = storedUser?.photoUrl?.startsWith('data:')
+        ? storedUser.photoUrl
+        : googlePhoto?.replace(/=s\d+-c$/, '=s256-c') || undefined;
 
       const user: User = {
         id: firebaseUser.uid,
         name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Usuário Google',
         email: firebaseUser.email || '',
-        photoUrl: firebaseUser.photoURL || undefined,
+        ...(photoUrl ? { photoUrl } : {}),
       };
 
-      const users = getStoredUsers();
       saveStoredUsers([...users.filter((u) => u.id !== user.id), user]);
       setActiveUser(user);
       setIsLoading(false);
@@ -83,7 +90,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         id: firebaseUser.uid,
         name: firebaseUser.displayName || email.split('@')[0],
         email: firebaseUser.email || email.trim(),
-        photoUrl: firebaseUser.photoURL || undefined,
+        ...(firebaseUser.photoURL ? { photoUrl: firebaseUser.photoURL } : {}),
       };
 
       const users = getStoredUsers();

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { CalendarDays, Target, Wind, User } from 'lucide-react';
 import { ActiveTab, User as UserType } from '../types';
 
@@ -9,6 +9,12 @@ interface BottomNavProps {
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, user }) => {
+  const [photoFailed, setPhotoFailed] = useState(false);
+
+  useEffect(() => {
+    setPhotoFailed(false);
+  }, [user?.photoUrl]);
+
   const tabs: { id: ActiveTab; label: string; icon: React.ReactNode }[] = [
     {
       id: 'agenda',
@@ -54,9 +60,15 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab, us
                   isActive ? 'scale-110' : ''
                 }`}
               >
-                {tab.id === 'ajustes' && user?.photoUrl ? (
+                {tab.id === 'ajustes' && user?.photoUrl && !photoFailed ? (
                   <div className={`w-6 h-6 rounded-full overflow-hidden border-2 shadow-xs ${isActive ? 'border-[#0A0A0A] dark:border-white ring-1 ring-[#0A0A0A] dark:ring-white' : 'border-neutral-300 dark:border-neutral-700'}`}>
-                    <img src={user.photoUrl} alt={user.name} className="w-full h-full object-cover" />
+                    <img
+                      src={user.photoUrl}
+                      alt={user.name}
+                      referrerPolicy="no-referrer"
+                      onError={() => setPhotoFailed(true)}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 ) : (
                   tab.icon
