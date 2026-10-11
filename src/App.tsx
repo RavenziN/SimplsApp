@@ -113,6 +113,20 @@ export default function App() {
     root.style.colorScheme = isDark ? 'dark' : 'light';
   }, [isDark]);
 
+  // Coming back to the app (e.g. switching from the phone to the computer) pulls the latest tasks.
+  const currentUserId = currentUser?.id;
+  useEffect(() => {
+    if (!currentUserId) return;
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      syncUserTasksWithRemote(currentUserId).then((merged) => {
+        if (auth.currentUser?.uid === currentUserId) setTasks(merged);
+      });
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [currentUserId]);
+
   const handleLoginSuccess = (user: User) => {
     setCurrentUser(user);
     const userTasks = getUserTasks(user.id);
@@ -129,6 +143,7 @@ export default function App() {
     setActiveUser(null);
     setCurrentUser(null);
     setTasks([]);
+    setActiveTab('agenda');
     try {
       await signOut(auth);
     } catch (err) {

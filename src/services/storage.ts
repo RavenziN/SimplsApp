@@ -7,6 +7,28 @@ const USERS_KEY = 'day_users_registry';
 const ACTIVE_USER_KEY = 'day_active_user';
 const PREFS_KEY_PREFIX = 'day_prefs_';
 const TASKS_KEY_PREFIX = 'day_tasks_';
+// Ids this browser has seen in Firestore. A local task missing from Firestore
+// that is in this set was deleted on another device; one that isn't is new here.
+const SYNCED_IDS_KEY_PREFIX = 'day_synced_ids_';
+
+function readSyncedIds(userId: string): Set<string> {
+  try {
+    const raw = localStorage.getItem(`${SYNCED_IDS_KEY_PREFIX}${userId}`);
+    return new Set(raw ? JSON.parse(raw) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function updateSyncedIds(userId: string, update: (ids: Set<string>) => void): void {
+  const ids = readSyncedIds(userId);
+  update(ids);
+  try {
+    localStorage.setItem(`${SYNCED_IDS_KEY_PREFIX}${userId}`, JSON.stringify(Array.from(ids)));
+  } catch {
+    // ignore
+  }
+}
 
 const DEFAULT_PREFERENCES: UserPreferences = {
   theme: 'light',
@@ -24,6 +46,7 @@ function taskDocRef(userId: string, taskId: string) {
 export async function syncTaskToFirestore(task: Task) {
   try {
     await setDoc(taskDocRef(task.userId, task.id), task, { merge: true });
+    updateSyncedIds(task.userId, (ids) => ids.add(task.id));
   } catch (err) {
     console.error('Error syncing task to Firestore:', err);
   }
@@ -32,6 +55,7 @@ export async function syncTaskToFirestore(task: Task) {
 async function deleteTaskFromFirestore(userId: string, taskId: string) {
   try {
     await deleteDoc(taskDocRef(userId, taskId));
+    updateSyncedIds(userId, (ids) => ids.delete(taskId));
   } catch (err) {
     console.error('Error deleting task from Firestore:', err);
   }
@@ -54,10 +78,12 @@ export async function syncUserTasksWithRemote(userId: string): Promise<Task[]> {
   const remote = await fetchRemoteTasks(userId);
   if (!remote) return local;
 
+  const syncedIds = readSyncedIds(userId);
   const byId = new Map<string, Task>();
   for (const task of remote) byId.set(task.id, task);
   for (const task of local) {
     const other = byId.get(task.id);
+    if (!other && syncedIds.has(task.id)) continue; // deleted on another device
     if (!other || (task.updatedAt || '') > (other.updatedAt || '')) {
       byId.set(task.id, task);
       syncTaskToFirestore(task);
@@ -66,6 +92,10 @@ export async function syncUserTasksWithRemote(userId: string): Promise<Task[]> {
 
   const merged = Array.from(byId.values());
   writeLocalTasks(userId, merged);
+  updateSyncedIds(userId, (ids) => {
+    ids.clear();
+    remote.forEach((task) => ids.add(task.id));
+  });
   return merged;
 }
 
