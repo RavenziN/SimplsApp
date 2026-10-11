@@ -8,6 +8,7 @@ import {
   getUserPreferences,
   saveUserPreferences,
   saveUserProfile,
+  syncUserTasksWithRemote,
 } from './services/storage';
 import { AuthScreen } from './components/AuthScreen';
 import { TimelineHeader } from './components/TimelineHeader';
@@ -28,10 +29,11 @@ import { formatDateToISO } from './utils/dateUtils';
 import { Smartphone, Monitor } from 'lucide-react';
 import { OnboardingScreen, hasCompletedOnboarding } from './components/Onboarding/OnboardingScreen';
 import { auth } from './services/firebase';
-import { signOut } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState<ActiveTab>('agenda');
@@ -56,9 +58,28 @@ export default function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
 
-  // Initialize active user removed so no account is pre-set on entry
+  // Restore the Firebase session on load so a refresh or reopening the app keeps the user signed in.
+  // Only the first auth state is handled here; later sign-ins go through AuthScreen.
   useEffect(() => {
-    // Start fresh without pre-set account
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      unsubscribe();
+      if (firebaseUser) {
+        const stored = getActiveUser();
+        const user: User =
+          stored?.id === firebaseUser.uid
+            ? stored
+            : {
+                id: firebaseUser.uid,
+                name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Usuário',
+                email: firebaseUser.email || '',
+                ...(firebaseUser.photoURL ? { photoUrl: firebaseUser.photoURL } : {}),
+              };
+        setActiveUser(user);
+        handleLoginSuccess(user);
+      }
+      setAuthReady(true);
+    });
+    return unsubscribe;
   }, []);
 
   // Update theme class on HTML element & color scheme
@@ -75,6 +96,11 @@ export default function App() {
     const userTasks = getUserTasks(user.id);
     setTasks(userTasks);
     setPreferences(getUserPreferences(user.id));
+
+    // Pull tasks saved from other devices.
+    syncUserTasksWithRemote(user.id).then((merged) => {
+      if (auth.currentUser?.uid === user.id) setTasks(merged);
+    });
   };
 
   const handleLogout = async () => {
@@ -191,6 +217,14 @@ export default function App() {
     setEditingTask(task);
     setIsTaskModalOpen(true);
   };
+
+  if (!authReady) {
+    return (
+      <div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center text-sm text-[#737373]">
+        Carregando…
+      </div>
+    );
+  }
 
   if (showOnboarding) {
     return (

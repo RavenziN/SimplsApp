@@ -8,7 +8,8 @@ import {
   createUserWithEmailAndPassword, 
   signInWithPopup, 
   GoogleAuthProvider, 
-  updateProfile 
+  updateProfile,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
@@ -162,17 +163,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     }
   };
 
-  const handleForgotPassword = (e: React.FormEvent) => {
+  const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
       setErrorMessage('Informe seu e-mail para recuperar a senha.');
       return;
     }
+    setErrorMessage(null);
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      setSuccessMessage(`Instruções de redefinição foram enviadas para ${email.trim()}.`);
+    } catch (err: any) {
+      if (err.code === 'auth/invalid-email') {
+        setErrorMessage('E-mail inválido.');
+      } else {
+        setErrorMessage('Não foi possível enviar o e-mail de redefinição. Tente novamente.');
+      }
+    } finally {
       setIsLoading(false);
-      setSuccessMessage(`Instruções de redefinição foram enviadas para ${email}.`);
-    }, 500);
+    }
   };
 
   return (
