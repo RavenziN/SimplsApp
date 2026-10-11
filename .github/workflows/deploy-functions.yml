@@ -30,6 +30,6 @@ jobs:
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@master
         with:
-          args: deploy --only functions,firestore:indexes
+          args: deploy --only functions,firestore:indexes --project simpls-app
         env:
           GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
