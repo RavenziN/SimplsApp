@@ -44,8 +44,19 @@ function taskDocRef(userId: string, taskId: string) {
 }
 
 export async function syncTaskToFirestore(task: Task) {
+  // Compute startAt (UTC ISO) from local date+time so the Cloud Function can
+  // query by absolute time regardless of user timezone.
+  const startAt =
+    task.hasSpecificTime && task.date && task.startTime
+      ? new Date(`${task.date}T${task.startTime}:00`).toISOString()
+      : null;
+  const taskWithPush: Task = {
+    ...task,
+    startAt,
+    notifiedAt: task.notifiedAt ?? null,
+  };
   try {
-    await setDoc(taskDocRef(task.userId, task.id), task, { merge: true });
+    await setDoc(taskDocRef(task.userId, task.id), taskWithPush, { merge: true });
     updateSyncedIds(task.userId, (ids) => ids.add(task.id));
   } catch (err) {
     console.error('Error syncing task to Firestore:', err);

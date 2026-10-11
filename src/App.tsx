@@ -30,10 +30,12 @@ import { formatDateToISO } from './utils/dateUtils';
 import { OnboardingScreen, hasCompletedOnboarding } from './components/Onboarding/OnboardingScreen';
 import { auth } from './services/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { usePushNotifications } from './hooks/usePushNotifications';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  usePushNotifications(currentUser?.id ?? null);
   const [focusTheme, setFocusTheme] = useState<FocusColorTheme>('black');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
