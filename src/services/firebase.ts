@@ -10,8 +10,13 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
 // Initialize Firestore
-export const db = initializeFirestore(app, {
-  databaseId: (firebaseConfig as any).firestoreDatabaseId || '(default)',
-  // Optional fields (description, category, photoUrl) may be undefined; skip them instead of failing the write.
-  ignoreUndefinedProperties: true,
-} as any);
+// The database id is the third argument; inside the settings object it is ignored
+// and the SDK silently falls back to '(default)', which does not exist in this project.
+export const db = initializeFirestore(
+  app,
+  {
+    // Optional fields (description, category, photoUrl) may be undefined; skip them instead of failing the write.
+    ignoreUndefinedProperties: true,
+  },
+  firebaseConfig.firestoreDatabaseId || '(default)'
+);
