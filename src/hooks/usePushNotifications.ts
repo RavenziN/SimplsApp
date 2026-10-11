@@ -3,15 +3,12 @@ import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messagi
 import { doc, setDoc } from 'firebase/firestore';
 import { app, db } from '../services/firebase';
 
-// Get this key from Firebase Console → Project Settings → Cloud Messaging →
-// Web configuration → Generate key pair
-const VAPID_KEY = 'YOUR_VAPID_KEY_HERE';
+const VAPID_KEY = 'BHUz2vf6LOlkNPdNF_MaFGLjxn1cNAg0RR4eeOS2EzQ7T8Qes6P40kVqfgf9DoJur8s_ek1Ti0QzP1vXo7bJVoA';
 
 export function usePushNotifications(userId: string | null) {
   useEffect(() => {
     if (!userId) return;
     if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
-    if (VAPID_KEY === 'YOUR_VAPID_KEY_HERE') return;
 
     let unsubOnMessage: (() => void) | undefined;
 
