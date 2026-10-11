@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#0C0C0C"/>
+  <!-- Editorial Serif M Monogram -->
+  <g fill="#F5F5F3">
+    <!-- Left vertical stem with top/bottom serifs -->
+    <path d="M132 144 H184 V160 H168 V352 H188 V368 H132 V352 H152 V160 H132 Z"/>
+    <!-- Diagonal left thick stroke -->
+    <polygon points="168,160 256,336 264,336 188,160"/>
+    <!-- Diagonal right thin stroke -->
+    <polygon points="256,336 332,160 344,160 264,336"/>
+    <!-- Right vertical heavy stem with serifs -->
+    <path d="M328 144 H380 V160 H360 V352 H380 V368 H328 V352 H344 V160 H328 Z"/>
+    <!-- Center baseline bracket -->
+    <circle cx="260" cy="344" r="5" fill="#F5F5F3"/>
+  </g>
+</svg>

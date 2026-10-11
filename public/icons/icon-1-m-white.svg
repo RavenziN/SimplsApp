@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#FFFFFF"/>
+  <!-- Pure Black M on White Background -->
+  <path d="M148 376 V136 H196 L256 268 L316 136 H364 V376 H316 V224 L268 330 H244 L196 224 V376 Z" fill="#0A0A0A"/>
+</svg>

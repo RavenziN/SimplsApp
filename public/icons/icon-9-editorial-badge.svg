@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#0A0A0A"/>
+  <!-- Editorial Badge Layout -->
+  <path d="M164 280 V140 H204 L256 220 L308 140 H348 V280 H312 V196 L266 266 H246 L200 196 V280 Z" fill="#FFFFFF"/>
+  <line x1="164" y1="316" x2="348" y2="316" stroke="#FFFFFF" stroke-width="4" opacity="0.6"/>
+  <text x="256" y="356" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="800" fill="#FFFFFF" text-anchor="middle" letter-spacing="8" opacity="0.9">SIMPLS</text>
+</svg>

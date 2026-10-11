@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#0A0A0A"/>
+  <!-- Premium Typographic M Composition with Focal Dot -->
+  <path d="M140 372 V140 H186 L256 276 L326 140 H372 V372 H328 V228 L268 340 H244 L184 228 V372 Z" fill="#FFFFFF"/>
+  <circle cx="396" cy="140" r="20" fill="#FFFFFF"/>
+</svg>

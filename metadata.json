@@ -1,0 +1,6 @@
+{
+  "name": "Simpls — Agenda Diária",
+  "description": "Aplicativo minimalista de organização diária e calendário vertical de alta produtividade.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
