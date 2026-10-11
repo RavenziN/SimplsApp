@@ -11,6 +11,8 @@ export interface Task {
   endTime: string; // HH:mm e.g. "10:00"
   category?: string; // e.g. "Trabalho", "Saúde", "Pessoal", "Estudos"
   status: TaskStatus;
+  startAt?: string | null; // ISO UTC timestamp computed from date+startTime (for push scheduling)
+  notifiedAt?: string | null; // ISO timestamp when push was sent; null = not yet sent
   createdAt: string;
   updatedAt: string;
 }
