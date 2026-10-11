@@ -175,20 +175,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     }, 500);
   };
 
-  const handleQuickDemo = () => {
-    const demoUser: User = {
-      id: 'demo-pedro',
-      name: 'Pedro Otávio',
-      email: 'pedrootavio10k@gmail.com',
-    };
-    const users = getStoredUsers();
-    if (!users.some((u) => u.id === demoUser.id)) {
-      saveStoredUsers([...users, demoUser]);
-    }
-    setActiveUser(demoUser);
-    onLoginSuccess(demoUser);
-  };
-
   return (
     <div className="min-h-screen bg-[#F7F7F7] flex flex-col items-center justify-center p-4 sm:p-6 text-[#0A0A0A]">
       <div className="w-full max-w-[420px] bg-white rounded-3xl p-8 sm:p-10 shadow-sm border border-[#E5E5E5] transition-all">
@@ -314,23 +300,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 Esqueci minha senha
               </button>
             </div>
-
-            <div className="relative my-6 text-center">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[#E5E5E5]"></div>
-              </div>
-              <span className="relative bg-white px-3 text-xs text-[#737373]">ou</span>
-            </div>
-
-            {/* Quick test button */}
-            <button
-              type="button"
-              onClick={handleQuickDemo}
-              className="w-full py-3 bg-[#F7F7F7] hover:bg-[#E5E5E5] border border-[#E5E5E5] text-[#0A0A0A] font-medium text-xs rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <UserIcon className="w-3.5 h-3.5 text-[#0A0A0A]" />
-              Acessar com Pedro Otávio (Demonstração)
-            </button>
 
             <div className="mt-6 text-center text-xs text-[#737373]">
               Ainda não tem uma conta?{' '}
