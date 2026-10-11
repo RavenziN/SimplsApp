@@ -168,7 +168,13 @@ const THEMES: Record<FocusColorTheme, ThemeStyles> = {
   },
 };
 
-export const FocusScreen: React.FC = () => {
+interface FocusScreenProps {
+  // Title of the agenda task happening now (or next), shown under the timer.
+  currentTaskTitle?: string;
+  onThemeChange?: (theme: FocusColorTheme) => void;
+}
+
+export const FocusScreen: React.FC<FocusScreenProps> = ({ currentTaskTitle, onThemeChange }) => {
   const [presetMinutes, setPresetMinutes] = useState(25);
   const [timeLeftSeconds, setTimeLeftSeconds] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
@@ -176,6 +182,9 @@ export const FocusScreen: React.FC = () => {
   const [soundMode, setSoundMode] = useState<AmbientSoundType>('off');
   const [isSoundMenuOpen, setIsSoundMenuOpen] = useState(false);
   const [colorTheme, setColorTheme] = useState<FocusColorTheme>('black');
+  useEffect(() => {
+    onThemeChange?.(colorTheme);
+  }, [colorTheme, onThemeChange]);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [isLofiModalOpen, setIsLofiModalOpen] = useState(false);
@@ -779,6 +788,12 @@ export const FocusScreen: React.FC = () => {
         >
           {activeTag}
         </button>
+
+        {currentTaskTitle && (
+          <p className={`${isLofiActive ? 'mt-1 text-[10px]' : 'mt-3 text-xs'} max-w-[16rem] truncate ${currentTheme.subtext}`}>
+            {currentTaskTitle}
+          </p>
+        )}
       </div>
 
       {/* LoFi FM Music Player Completo & Responsivo */}

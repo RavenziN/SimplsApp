@@ -56,11 +56,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       if (defaultStartTime) {
         setStartTime(defaultStartTime);
         const [h, m] = defaultStartTime.split(':').map(Number);
-        const endHour = (h + 1) % 24;
-        setEndTime(`${String(endHour).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+        setEndTime(h >= 23 ? '23:59' : `${String(h + 1).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
       } else {
-        setStartTime('10:00');
-        setEndTime('11:00');
+        // Default to the next full hour so a new task isn't already overdue.
+        const nextHour = Math.min(new Date().getHours() + 1, 23);
+        setStartTime(`${String(nextHour).padStart(2, '0')}:00`);
+        setEndTime(nextHour === 23 ? '23:59' : `${String(nextHour + 1).padStart(2, '0')}:00`);
       }
       setCategory('');
       setStatus('pending');
