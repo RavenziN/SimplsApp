@@ -26,7 +26,6 @@ import { TaskDetailsModal } from './components/TaskDetailsModal';
 import { SearchModal } from './components/SearchModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
 import { formatDateToISO } from './utils/dateUtils';
-import { Smartphone, Monitor } from 'lucide-react';
 import { OnboardingScreen, hasCompletedOnboarding } from './components/Onboarding/OnboardingScreen';
 import { auth } from './services/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -45,9 +44,6 @@ export default function App() {
     endHour: 23,
     autoScrollToCurrentTime: true,
   });
-
-  // Device frame toggle on desktop (for reviewing the mobile mockups or using full width)
-  const [desktopViewMode, setDesktopViewMode] = useState<'responsive' | 'phoneFrame'>('responsive');
 
   // Modals state
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -258,51 +254,11 @@ export default function App() {
         preferences.theme === 'dark' ? 'bg-[#0A0A0A] text-white' : 'bg-[#F7F7F7] text-[#0A0A0A]'
       } flex flex-col`}
     >
-      {/* Top Device Bar for Desktop: Switch between Responsive view and exact Phone Frame */}
-      <div className="shrink-0 hidden lg:flex items-center justify-between px-6 py-2 border-b border-[#E5E5E5] dark:border-[#262626] bg-white dark:bg-[#141414] text-xs text-[#737373] dark:text-neutral-400">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-[#0A0A0A] dark:text-white">Simpls Agenda</span>
-          <span>·</span>
-          <span>Usuário: {currentUser.name} ({currentUser.email})</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[11px]">Visualização:</span>
-          <button
-            type="button"
-            onClick={() => setDesktopViewMode('responsive')}
-            className={`px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-medium transition-colors cursor-pointer ${
-              desktopViewMode === 'responsive'
-                ? 'bg-[#0A0A0A] dark:bg-white text-white dark:text-[#0A0A0A]'
-                : 'hover:bg-[#F7F7F7] dark:hover:bg-[#1A1A1A] text-[#0A0A0A] dark:text-white'
-            }`}
-          >
-            <Monitor className="w-3.5 h-3.5" />
-            Tela Ampla
-          </button>
-          <button
-            type="button"
-            onClick={() => setDesktopViewMode('phoneFrame')}
-            className={`px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-medium transition-colors cursor-pointer ${
-              desktopViewMode === 'phoneFrame'
-                ? 'bg-[#0A0A0A] dark:bg-white text-white dark:text-[#0A0A0A]'
-                : 'hover:bg-[#F7F7F7] dark:hover:bg-[#1A1A1A] text-[#0A0A0A] dark:text-white'
-            }`}
-          >
-            <Smartphone className="w-3.5 h-3.5" />
-            Moldura Mobile
-          </button>
-        </div>
-      </div>
-
       {/* Main Container Wrapper / Centering area */}
       <div className="flex-1 min-h-0 flex flex-col items-center justify-center w-full">
         {/* Main App Container */}
         <div
-          className={`flex flex-col w-full transition-all ${
-            desktopViewMode === 'phoneFrame'
-              ? 'max-w-[430px] h-full lg:h-[880px] bg-white dark:bg-[#0A0A0A] lg:border border-[#E5E5E5] dark:border-[#262626] lg:rounded-[44px] shadow-2xl overflow-hidden relative'
-              : 'max-w-2xl h-full lg:h-[90vh] lg:max-h-[920px] bg-white dark:bg-[#0A0A0A] border-x lg:border border-[#E5E5E5] dark:border-[#262626] lg:rounded-3xl overflow-hidden relative shadow-xl'
-          }`}
+          className="flex flex-col w-full transition-all max-w-2xl h-full lg:h-[90vh] lg:max-h-[920px] bg-white dark:bg-[#0A0A0A] border-x lg:border border-[#E5E5E5] dark:border-[#262626] lg:rounded-3xl overflow-hidden relative shadow-xl"
         >
           {/* Header */}
           <div className="shrink-0">
