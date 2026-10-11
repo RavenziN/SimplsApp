@@ -83,7 +83,13 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#F7F7F7] dark:bg-[#0A0A0A] flex flex-col items-center justify-center h-[100vh] h-[100dvh] w-full overflow-hidden p-0 sm:p-[clamp(0.5rem,1.5vh,1rem)] select-none">
+    <div
+      className="fixed inset-0 z-50 bg-[#F7F7F7] dark:bg-[#0A0A0A] flex flex-col items-center justify-center w-full overflow-hidden select-none sm:p-[clamp(0.5rem,1.5vh,1rem)]"
+      style={{
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}
+    >
       {/* Container Principal com Flexbox 100% vh, sem rolagem */}
       <div className="w-full h-full max-w-[430px] sm:max-h-[min(880px,100vh)] sm:rounded-[36px] bg-white dark:bg-[#0A0A0A] shadow-2xl flex flex-col justify-between relative overflow-hidden border-0 sm:border border-neutral-200/80 dark:border-[#262626]">
         {/* Barra de Progresso Segmentada (7 passos) & Top Bar */}
