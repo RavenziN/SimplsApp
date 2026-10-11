@@ -12,4 +12,6 @@ export const auth = getAuth(app);
 // Initialize Firestore
 export const db = initializeFirestore(app, {
   databaseId: (firebaseConfig as any).firestoreDatabaseId || '(default)',
+  // Optional fields (description, category, photoUrl) may be undefined; skip them instead of failing the write.
+  ignoreUndefinedProperties: true,
 } as any);

@@ -1,7 +1,7 @@
 import { Task, User, UserPreferences } from '../types';
 import { formatDateToISO } from '../utils/dateUtils';
 import { db } from './firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDocs, query, setDoc, where } from 'firebase/firestore';
 
 const USERS_KEY = 'day_users_registry';
 const ACTIVE_USER_KEY = 'day_active_user';
@@ -15,13 +15,58 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   autoScrollToCurrentTime: true,
 };
 
+// Task ids are only unique per user (e.g. the demo seed uses "task-1"),
+// so the Firestore document id is namespaced by the owner.
+function taskDocRef(userId: string, taskId: string) {
+  return doc(db, 'tasks', `${userId}_${taskId}`);
+}
+
 export async function syncTaskToFirestore(task: Task) {
   try {
-    const docRef = doc(db, 'tasks', task.id);
-    await setDoc(docRef, task, { merge: true });
+    await setDoc(taskDocRef(task.userId, task.id), task, { merge: true });
   } catch (err) {
     console.error('Error syncing task to Firestore:', err);
   }
+}
+
+async function deleteTaskFromFirestore(userId: string, taskId: string) {
+  try {
+    await deleteDoc(taskDocRef(userId, taskId));
+  } catch (err) {
+    console.error('Error deleting task from Firestore:', err);
+  }
+}
+
+export async function fetchRemoteTasks(userId: string): Promise<Task[] | null> {
+  try {
+    const snap = await getDocs(query(collection(db, 'tasks'), where('userId', '==', userId)));
+    return snap.docs.map((d) => d.data() as Task);
+  } catch (err) {
+    console.error('Error loading tasks from Firestore:', err);
+    return null;
+  }
+}
+
+// Merges tasks saved in this browser with the ones in Firestore (newest
+// updatedAt wins) so the agenda follows the user across devices.
+export async function syncUserTasksWithRemote(userId: string): Promise<Task[]> {
+  const local = readLocalTasks(userId) ?? [];
+  const remote = await fetchRemoteTasks(userId);
+  if (!remote) return local;
+
+  const byId = new Map<string, Task>();
+  for (const task of remote) byId.set(task.id, task);
+  for (const task of local) {
+    const other = byId.get(task.id);
+    if (!other || (task.updatedAt || '') > (other.updatedAt || '')) {
+      byId.set(task.id, task);
+      syncTaskToFirestore(task);
+    }
+  }
+
+  const merged = Array.from(byId.values());
+  writeLocalTasks(userId, merged);
+  return merged;
 }
 
 export async function syncUserToFirestore(user: User) {
@@ -274,29 +319,44 @@ export function generateInitialTasks(userId: string): Task[] {
   ];
 }
 
-export function getUserTasks(userId: string): Task[] {
+function readLocalTasks(userId: string): Task[] | null {
   try {
     const raw = localStorage.getItem(`${TASKS_KEY_PREFIX}${userId}`);
-    if (!raw) {
-      // First time user: generate demo seed tasks
-      const seedTasks = generateInitialTasks(userId);
-      saveUserTasks(userId, seedTasks);
-      return seedTasks;
-    }
-    return JSON.parse(raw);
+    return raw ? JSON.parse(raw) : null;
   } catch (err) {
     console.error('Error reading tasks', err);
-    return [];
+    return null;
   }
 }
 
-export function saveUserTasks(userId: string, tasks: Task[]): void {
+function writeLocalTasks(userId: string, tasks: Task[]): void {
   try {
     localStorage.setItem(`${TASKS_KEY_PREFIX}${userId}`, JSON.stringify(tasks));
-    tasks.forEach((task) => syncTaskToFirestore(task));
   } catch (err) {
     console.error('Error saving tasks to localStorage', err);
   }
+}
+
+export function getUserTasks(userId: string): Task[] {
+  return readLocalTasks(userId) ?? [];
+}
+
+export function saveUserTasks(userId: string, tasks: Task[]): void {
+  const previous = readLocalTasks(userId) ?? [];
+  writeLocalTasks(userId, tasks);
+
+  // Only write what changed, and remove deleted tasks from Firestore too.
+  const prevById = new Map(previous.map((t) => [t.id, t]));
+  const nextIds = new Set(tasks.map((t) => t.id));
+  tasks.forEach((task) => {
+    const prev = prevById.get(task.id);
+    if (!prev || JSON.stringify(prev) !== JSON.stringify(task)) {
+      syncTaskToFirestore({ ...task, userId });
+    }
+  });
+  previous.forEach((task) => {
+    if (!nextIds.has(task.id)) deleteTaskFromFirestore(userId, task.id);
+  });
 }
 
 export function clearUserTasks(userId: string): void {

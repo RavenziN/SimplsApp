@@ -8,6 +8,7 @@ import {
   getUserPreferences,
   saveUserPreferences,
   saveUserProfile,
+  syncUserTasksWithRemote,
 } from './services/storage';
 import { AuthScreen } from './components/AuthScreen';
 import { TimelineHeader } from './components/TimelineHeader';
@@ -25,13 +26,13 @@ import { TaskDetailsModal } from './components/TaskDetailsModal';
 import { SearchModal } from './components/SearchModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
 import { formatDateToISO } from './utils/dateUtils';
-import { Smartphone, Monitor } from 'lucide-react';
 import { OnboardingScreen, hasCompletedOnboarding } from './components/Onboarding/OnboardingScreen';
 import { auth } from './services/firebase';
-import { signOut } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState<ActiveTab>('agenda');
@@ -44,9 +45,6 @@ export default function App() {
     autoScrollToCurrentTime: true,
   });
 
-  // Device frame toggle on desktop (for reviewing the mobile mockups or using full width)
-  const [desktopViewMode, setDesktopViewMode] = useState<'responsive' | 'phoneFrame'>('responsive');
-
   // Modals state
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -56,9 +54,28 @@ export default function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
 
-  // Initialize active user removed so no account is pre-set on entry
+  // Restore the Firebase session on load so a refresh or reopening the app keeps the user signed in.
+  // Only the first auth state is handled here; later sign-ins go through AuthScreen.
   useEffect(() => {
-    // Start fresh without pre-set account
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      unsubscribe();
+      if (firebaseUser) {
+        const stored = getActiveUser();
+        const user: User =
+          stored?.id === firebaseUser.uid
+            ? stored
+            : {
+                id: firebaseUser.uid,
+                name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Usuário',
+                email: firebaseUser.email || '',
+                ...(firebaseUser.photoURL ? { photoUrl: firebaseUser.photoURL } : {}),
+              };
+        setActiveUser(user);
+        handleLoginSuccess(user);
+      }
+      setAuthReady(true);
+    });
+    return unsubscribe;
   }, []);
 
   // Update theme class on HTML element & color scheme
@@ -75,6 +92,11 @@ export default function App() {
     const userTasks = getUserTasks(user.id);
     setTasks(userTasks);
     setPreferences(getUserPreferences(user.id));
+
+    // Pull tasks saved from other devices.
+    syncUserTasksWithRemote(user.id).then((merged) => {
+      if (auth.currentUser?.uid === user.id) setTasks(merged);
+    });
   };
 
   const handleLogout = async () => {
@@ -192,6 +214,14 @@ export default function App() {
     setIsTaskModalOpen(true);
   };
 
+  if (!authReady) {
+    return (
+      <div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center text-sm text-[#737373]">
+        Carregando…
+      </div>
+    );
+  }
+
   if (showOnboarding) {
     return (
       <OnboardingScreen
@@ -224,51 +254,11 @@ export default function App() {
         preferences.theme === 'dark' ? 'bg-[#0A0A0A] text-white' : 'bg-[#F7F7F7] text-[#0A0A0A]'
       } flex flex-col`}
     >
-      {/* Top Device Bar for Desktop: Switch between Responsive view and exact Phone Frame */}
-      <div className="shrink-0 hidden lg:flex items-center justify-between px-6 py-2 border-b border-[#E5E5E5] dark:border-[#262626] bg-white dark:bg-[#141414] text-xs text-[#737373] dark:text-neutral-400">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-[#0A0A0A] dark:text-white">Simpls Agenda</span>
-          <span>·</span>
-          <span>Usuário: {currentUser.name} ({currentUser.email})</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[11px]">Visualização:</span>
-          <button
-            type="button"
-            onClick={() => setDesktopViewMode('responsive')}
-            className={`px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-medium transition-colors cursor-pointer ${
-              desktopViewMode === 'responsive'
-                ? 'bg-[#0A0A0A] dark:bg-white text-white dark:text-[#0A0A0A]'
-                : 'hover:bg-[#F7F7F7] dark:hover:bg-[#1A1A1A] text-[#0A0A0A] dark:text-white'
-            }`}
-          >
-            <Monitor className="w-3.5 h-3.5" />
-            Tela Ampla
-          </button>
-          <button
-            type="button"
-            onClick={() => setDesktopViewMode('phoneFrame')}
-            className={`px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-medium transition-colors cursor-pointer ${
-              desktopViewMode === 'phoneFrame'
-                ? 'bg-[#0A0A0A] dark:bg-white text-white dark:text-[#0A0A0A]'
-                : 'hover:bg-[#F7F7F7] dark:hover:bg-[#1A1A1A] text-[#0A0A0A] dark:text-white'
-            }`}
-          >
-            <Smartphone className="w-3.5 h-3.5" />
-            Moldura Mobile
-          </button>
-        </div>
-      </div>
-
       {/* Main Container Wrapper / Centering area */}
       <div className="flex-1 min-h-0 flex flex-col items-center justify-center w-full">
         {/* Main App Container */}
         <div
-          className={`flex flex-col w-full transition-all ${
-            desktopViewMode === 'phoneFrame'
-              ? 'max-w-[430px] h-full lg:h-[880px] bg-white dark:bg-[#0A0A0A] lg:border border-[#E5E5E5] dark:border-[#262626] lg:rounded-[44px] shadow-2xl overflow-hidden relative'
-              : 'max-w-2xl h-full lg:h-[90vh] lg:max-h-[920px] bg-white dark:bg-[#0A0A0A] border-x lg:border border-[#E5E5E5] dark:border-[#262626] lg:rounded-3xl overflow-hidden relative shadow-xl'
-          }`}
+          className="flex flex-col w-full transition-all max-w-2xl h-full lg:h-[90vh] lg:max-h-[920px] bg-white dark:bg-[#0A0A0A] border-x lg:border border-[#E5E5E5] dark:border-[#262626] lg:rounded-3xl overflow-hidden relative shadow-xl"
         >
           {/* Header */}
           <div className="shrink-0">
