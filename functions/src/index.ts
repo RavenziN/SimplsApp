@@ -16,10 +16,10 @@ export const sendTaskNotifications = onSchedule('every 1 minutes', async () => {
   startOfMinute.setSeconds(0, 0);
   const endOfMinute = new Date(startOfMinute.getTime() + 60_000);
 
+  // Query only by startAt range (auto-indexed single field) and filter the
+  // rest in-memory to avoid needing a composite index.
   const tasksSnap = await db
     .collection('tasks')
-    .where('hasSpecificTime', '==', true)
-    .where('notifiedAt', '==', null)
     .where('startAt', '>=', startOfMinute.toISOString())
     .where('startAt', '<', endOfMinute.toISOString())
     .get();
@@ -31,6 +31,7 @@ export const sendTaskNotifications = onSchedule('every 1 minutes', async () => {
 
   for (const taskDoc of tasksSnap.docs) {
     const task = taskDoc.data();
+    if (!task.hasSpecificTime || task.notifiedAt != null) continue;
 
     const userDoc = await db.collection('users').doc(task.userId as string).get();
     if (!userDoc.exists) continue;
