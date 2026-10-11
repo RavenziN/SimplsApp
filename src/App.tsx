@@ -78,6 +78,22 @@ export default function App() {
     return unsubscribe;
   }, []);
 
+  // Esc closes the topmost open modal (useful on desktop).
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (taskToDelete) setTaskToDelete(null);
+      else if (isTaskModalOpen) {
+        setIsTaskModalOpen(false);
+        setEditingTask(null);
+        setDefaultSlotTime(undefined);
+      } else if (detailsTask) setDetailsTask(null);
+      else if (isSearchOpen) setIsSearchOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [taskToDelete, isTaskModalOpen, detailsTask, isSearchOpen]);
+
   // Update theme class on HTML element & color scheme
   useEffect(() => {
     const root = document.documentElement;

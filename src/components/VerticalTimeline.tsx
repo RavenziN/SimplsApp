@@ -200,6 +200,7 @@ export const VerticalTimeline: React.FC<VerticalTimelineProps> = ({
                         e.stopPropagation();
                         setActiveMenuTaskId(activeMenuTaskId === task.id ? null : task.id);
                       }}
+                      aria-label="Opções"
                       className="p-1 text-[#737373] dark:text-neutral-400 hover:text-[#0A0A0A] dark:hover:text-white rounded-lg cursor-pointer"
                     >
                       <MoreVertical className="w-4 h-4" />
@@ -311,7 +312,9 @@ export const VerticalTimeline: React.FC<VerticalTimelineProps> = ({
                   {/* Right Column: Modern Card with Status Pill, Diamond Icon, Title, and Options */}
                   <div
                     onClick={() => onOpenTaskDetails(task)}
-                    className={`flex-1 bg-white dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#262626] rounded-3xl p-4 sm:p-5 shadow-xs hover:border-[#0A0A0A] dark:hover:border-white hover:shadow-md transition-all cursor-pointer relative overflow-hidden ${
+                    className={`flex-1 bg-white dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#262626] rounded-3xl p-4 sm:p-5 shadow-xs hover:border-[#0A0A0A] dark:hover:border-white hover:shadow-md transition-all cursor-pointer relative ${
+                      activeMenuTaskId === task.id ? 'z-30' : 'overflow-hidden'
+                    } ${
                       task.status === 'completed'
                         ? 'opacity-65 bg-neutral-50/70 dark:bg-neutral-900/40 border-[#E5E5E5] dark:border-[#262626]'
                         : ''
