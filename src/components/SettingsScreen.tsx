@@ -52,6 +52,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onNavigateToTab,
 }) => {
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [photoFailed, setPhotoFailed] = useState(false);
+
+  useEffect(() => {
+    setPhotoFailed(false);
+  }, [user.photoUrl]);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showDiscoveryTutorial, setShowDiscoveryTutorial] = useState(false);
 
@@ -217,10 +222,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <div className="p-4 bg-[#F7F7F7] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#262626] rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4 w-full sm:w-auto">
               <div className="relative group shrink-0">
-                {user.photoUrl ? (
+                {user.photoUrl && !photoFailed ? (
                   <img
                     src={user.photoUrl}
                     alt={user.name}
+                    referrerPolicy="no-referrer"
+                    onError={() => setPhotoFailed(true)}
                     className="w-16 h-16 rounded-full object-cover border-2 border-[#E5E5E5] dark:border-[#262626]"
                   />
                 ) : (
