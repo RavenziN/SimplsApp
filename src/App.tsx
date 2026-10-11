@@ -311,7 +311,6 @@ export default function App() {
       className={`h-screen w-screen overflow-hidden ${
         isDark ? 'bg-[#0A0A0A] text-white' : 'bg-[#F7F7F7] text-[#0A0A0A]'
       } flex flex-col`}
-      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
       {/* Main Container Wrapper / Centering area */}
       <div className="flex-1 min-h-0 flex flex-col items-center justify-center w-full">

@@ -16,8 +16,11 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
   onGoHome,
 }) => {
   return (
-    <header className="sticky top-0 z-30 bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-md border-b border-[#E5E5E5] dark:border-[#222222] px-4 py-3 sm:px-6">
-      <div className="max-w-2xl mx-auto flex items-center justify-between">
+    <header
+      className="sticky top-0 z-30 bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-md border-b border-[#E5E5E5] dark:border-[#222222] px-4 sm:px-6"
+      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+    >
+      <div className="max-w-2xl mx-auto flex items-center justify-between py-3">
         <button
           type="button"
           onClick={onGoHome}
