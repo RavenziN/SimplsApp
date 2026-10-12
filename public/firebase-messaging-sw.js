@@ -20,8 +20,9 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  const title = payload.notification?.title || 'Simpls';
-  const body = payload.notification?.body || '';
+  // Data-only messages: title/body live in payload.data
+  const title = (payload.data && payload.data.title) || payload.notification?.title || 'Simpls';
+  const body = (payload.data && payload.data.body) || payload.notification?.body || '';
   self.registration.showNotification(title, {
     body,
     icon: '/pwa-192x192.png',
