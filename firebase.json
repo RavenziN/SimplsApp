@@ -9,7 +9,7 @@
   "firestore": {
     "database": "ai-studio-dayagendadiriami-df797b24-bb81-4f3b-a710-b0cb6470739c",
     "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json" 
+    "indexes" : "firestore.indexes.json" 
   }
 }
 
