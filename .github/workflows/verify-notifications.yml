@@ -1,0 +1,114 @@
+name: Verify Push Notifications
+
+on:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Check Cloud Scheduler jobs
+        run: |
+          echo "=== Cloud Scheduler jobs ==="
+          gcloud scheduler jobs list --project=simpls-app --location=us-central1 2>&1 || echo "(no scheduler jobs found or wrong location)"
+          gcloud scheduler jobs list --project=simpls-app --location=us-east1 2>&1 || true
+
+      - name: Read recent function logs (last 5 minutes)
+        run: |
+          echo "=== Function invocation logs (last 5 min) ==="
+          gcloud logging read \
+            'resource.type="cloud_run_revision" AND resource.labels.service_name:"sendtasknotifications" AND timestamp>="'"$(date -u -d '5 minutes ago' +%Y-%m-%dT%H:%M:%SZ)"'"' \
+            --project=simpls-app \
+            --limit=30 \
+            --format='table(timestamp,textPayload)' 2>&1
+
+      - name: Create test task in Firestore
+        run: |
+          DB_ID="ai-studio-dayagendadiriami-df797b24-bb81-4f3b-a710-b0cb6470739c"
+          PROJECT="simpls-app"
+          # startAt = 1 minute from now (so the scheduler picks it up in the next run)
+          START_AT=$(date -u -d '1 minute' +%Y-%m-%dT%H:%M:00Z)
+          DOC_ID="test-notification-verify"
+          TOKEN=$(gcloud auth print-access-token)
+
+          echo "Creating test task with startAt=$START_AT"
+
+          curl -s -X PATCH \
+            "https://firestore.googleapis.com/v1/projects/$PROJECT/databases/$DB_ID/documents/tasks/$DOC_ID?updateMask.fieldPaths=title&updateMask.fieldPaths=description&updateMask.fieldPaths=startAt&updateMask.fieldPaths=hasSpecificTime&updateMask.fieldPaths=notifiedAt&updateMask.fieldPaths=userId" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "fields": {
+                "title": {"stringValue": "Teste de notificacao automatica"},
+                "description": {"stringValue": "Verificacao end-to-end Claude"},
+                "startAt": {"stringValue": "'"$START_AT"'"},
+                "hasSpecificTime": {"booleanValue": true},
+                "notifiedAt": {"nullValue": null},
+                "userId": {"stringValue": "test-verify-user"}
+              }
+            }' | python3 -c "import sys,json; d=json.load(sys.stdin); print('Created:', d.get('name','?'))"
+
+          echo "START_AT=$START_AT" >> $GITHUB_ENV
+          echo "TEST_DOC_ID=$DOC_ID" >> $GITHUB_ENV
+          echo "TOKEN_SAVED=yes" >> $GITHUB_ENV
+
+      - name: Wait 90 seconds for scheduler to fire
+        run: |
+          echo "Waiting 90s for the scheduler to pick up the test task..."
+          sleep 90
+
+      - name: Check if notifiedAt was set
+        run: |
+          DB_ID="ai-studio-dayagendadiriami-df797b24-bb81-4f3b-a710-b0cb6470739c"
+          PROJECT="simpls-app"
+          TOKEN=$(gcloud auth print-access-token)
+
+          echo "=== Checking test task document ==="
+          RESULT=$(curl -s \
+            "https://firestore.googleapis.com/v1/projects/$PROJECT/databases/$DB_ID/documents/tasks/$TEST_DOC_ID" \
+            -H "Authorization: Bearer $TOKEN")
+
+          echo "$RESULT" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          fields = d.get('fields', {})
+          notified = fields.get('notifiedAt', {})
+          start_at = fields.get('startAt', {}).get('stringValue','?')
+          print('startAt:', start_at)
+          if 'nullValue' in notified:
+              print('RESULT: notifiedAt is still NULL — function did NOT process this task')
+          elif 'stringValue' in notified:
+              print('RESULT: notifiedAt =', notified['stringValue'], '— function ran successfully!')
+          else:
+              print('RESULT: unexpected notifiedAt value:', notified)
+          "
+
+      - name: Check function logs after scheduler run
+        run: |
+          echo "=== Function logs after test (last 2 min) ==="
+          gcloud logging read \
+            'resource.type="cloud_run_revision" AND resource.labels.service_name:"sendtasknotifications" AND timestamp>="'"$(date -u -d '2 minutes ago' +%Y-%m-%dT%H:%M:%SZ)"'"' \
+            --project=simpls-app \
+            --limit=20 \
+            --format='table(timestamp,textPayload)' 2>&1
+
+      - name: Clean up test document
+        if: always()
+        run: |
+          DB_ID="ai-studio-dayagendadiriami-df797b24-bb81-4f3b-a710-b0cb6470739c"
+          PROJECT="simpls-app"
+          TOKEN=$(gcloud auth print-access-token)
+          curl -s -X DELETE \
+            "https://firestore.googleapis.com/v1/projects/$PROJECT/databases/$DB_ID/documents/tasks/test-notification-verify" \
+            -H "Authorization: Bearer $TOKEN" > /dev/null
+          echo "Test document deleted."
