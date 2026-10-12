@@ -35,7 +35,7 @@ import { usePushNotifications } from './hooks/usePushNotifications';
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
-  usePushNotifications(currentUser?.id ?? null);
+  const { requestPermission: requestPushPermission } = usePushNotifications(currentUser?.id ?? null);
   const [focusTheme, setFocusTheme] = useState<FocusColorTheme>('black');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -399,6 +399,7 @@ export default function App() {
                 onTasksChanged={refreshTasks}
                 onReplayOnboarding={() => setShowOnboarding(true)}
                 onNavigateToTab={(tab) => setActiveTab(tab)}
+                onRequestNotificationPermission={requestPushPermission}
               />
             )}
           </div>
