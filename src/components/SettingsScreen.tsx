@@ -19,6 +19,8 @@ import {
   Check,
   Palette,
   Layers,
+  Bell,
+  BellOff,
 } from 'lucide-react';
 import { User, UserPreferences } from '../types';
 import {
@@ -30,6 +32,8 @@ import {
 import { DiscoveryTutorialModal } from './DiscoveryTutorialModal';
 import { usePWAInstall } from '../utils/pwaInstall';
 
+import { NotificationPermissionState } from '../hooks/usePushNotifications';
+
 interface SettingsScreenProps {
   user: User;
   preferences: UserPreferences;
@@ -39,6 +43,7 @@ interface SettingsScreenProps {
   onTasksChanged: () => void;
   onReplayOnboarding?: () => void;
   onNavigateToTab?: (tab: 'agenda' | 'foco' | 'respirar' | 'relogio') => void;
+  onRequestNotificationPermission?: () => Promise<NotificationPermissionState>;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
@@ -50,9 +55,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onTasksChanged,
   onReplayOnboarding,
   onNavigateToTab,
+  onRequestNotificationPermission,
 }) => {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [photoFailed, setPhotoFailed] = useState(false);
+  const [notifState, setNotifState] = useState<NotificationPermissionState>(() => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return 'unsupported';
+    return Notification.permission as NotificationPermissionState;
+  });
+  const [notifLoading, setNotifLoading] = useState(false);
 
   useEffect(() => {
     setPhotoFailed(false);
@@ -181,6 +192,24 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     setShowClearConfirm(false);
     setFeedback('Todas as tarefas foram removidas.');
     setTimeout(() => setFeedback(null), 3000);
+  };
+
+  const handleEnableNotifications = async () => {
+    if (!onRequestNotificationPermission) return;
+    setNotifLoading(true);
+    try {
+      const result = await onRequestNotificationPermission();
+      setNotifState(result);
+      if (result === 'granted') {
+        setFeedback('Notificações ativadas!');
+        setTimeout(() => setFeedback(null), 3000);
+      } else if (result === 'denied') {
+        setFeedback('Permissão negada. Ative nas configurações do sistema.');
+        setTimeout(() => setFeedback(null), 4000);
+      }
+    } finally {
+      setNotifLoading(false);
+    }
   };
 
   // Instalação do PWA
@@ -348,6 +377,49 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             )}
           </div>
         </div>
+
+        {/* 4. NOTIFICAÇÕES */}
+        {notifState !== 'unsupported' && (
+          <div className="p-4 bg-[#F7F7F7] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#262626] rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-neutral-200 dark:bg-[#222222] text-[#0A0A0A] dark:text-white flex items-center justify-center shrink-0">
+                {notifState === 'granted' ? (
+                  <Bell className="w-4 h-4" />
+                ) : (
+                  <BellOff className="w-4 h-4" />
+                )}
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-[#0A0A0A] dark:text-white">
+                  {notifState === 'granted' ? 'Notificações ativadas' : 'Notificações de tarefas'}
+                </h4>
+                <p className="text-[11px] text-[#737373] dark:text-neutral-400">
+                  {notifState === 'granted'
+                    ? 'Você receberá avisos no horário de cada tarefa.'
+                    : notifState === 'denied'
+                    ? 'Bloqueado. Ative nas configurações do sistema.'
+                    : 'Receba avisos no horário de cada tarefa, mesmo com o app fechado.'}
+                </p>
+              </div>
+            </div>
+            {notifState === 'granted' ? (
+              <div className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 text-xs font-semibold flex items-center gap-1.5 shrink-0">
+                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                <span>Ativado</span>
+              </div>
+            ) : notifState !== 'denied' && (
+              <button
+                type="button"
+                onClick={handleEnableNotifications}
+                disabled={notifLoading}
+                className="w-full sm:w-auto px-4 py-2 bg-[#0A0A0A] dark:bg-white text-white dark:text-[#0A0A0A] rounded-xl text-xs font-semibold hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-xs shrink-0 disabled:opacity-50"
+              >
+                <Bell className="w-3.5 h-3.5" />
+                <span>{notifLoading ? 'Ativando…' : 'Ativar notificações'}</span>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* 5. AGENDA */}
         <div className="space-y-3">
