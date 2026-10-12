@@ -17,14 +17,8 @@ async function setupMessaging(userId: string): Promise<boolean> {
     await setDoc(doc(db, 'users', userId), { fcmToken: token }, { merge: true });
   }
 
-  // Show notifications when app is in the foreground
-  onMessage(messaging, (payload) => {
-    const title = payload.notification?.title ?? 'Simpls';
-    const body = payload.notification?.body ?? '';
-    if (Notification.permission === 'granted') {
-      new Notification(title, { body, icon: '/pwa-192x192.png' });
-    }
-  });
+  // FCM foreground messages: the SW handles display, nothing extra needed here.
+  onMessage(messaging, () => undefined);
 
   return !!token;
 }

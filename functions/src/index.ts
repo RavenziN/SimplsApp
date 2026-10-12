@@ -39,21 +39,17 @@ export const sendTaskNotifications = onSchedule('every 1 minutes', async () => {
     const fcmToken: string | undefined = (userDoc.data() as { fcmToken?: string })?.fcmToken;
     if (!fcmToken) continue;
 
+    // Send data-only so FCM never auto-displays a notification — the SW's
+    // onBackgroundMessage handler owns display exclusively, preventing duplicates.
     sends.push(
       messaging
         .send({
           token: fcmToken,
-          notification: {
+          data: {
             title: task.title as string,
             body: (task.description as string | undefined) || 'Hora do compromisso!',
           },
           webpush: {
-            notification: {
-              icon: 'https://simplss.netlify.app/pwa-192x192.png',
-              badge: 'https://simplss.netlify.app/pwa-192x192.png',
-              vibrate: [200, 100, 200],
-              requireInteraction: false,
-            },
             fcmOptions: {
               link: 'https://simplss.netlify.app',
             },

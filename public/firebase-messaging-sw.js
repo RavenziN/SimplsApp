@@ -1,6 +1,13 @@
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
 
+// Activate new SW immediately so updated builds take effect without
+// requiring the user to close all tabs or delete and re-add the PWA.
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 firebase.initializeApp({
   apiKey: 'AIzaSyBfZnfQTObRebE4oB92v-Qgj-0lrXbX5JE',
   authDomain: 'simpls-app.firebaseapp.com',
@@ -13,8 +20,9 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  const title = payload.notification?.title || 'Simpls';
-  const body = payload.notification?.body || '';
+  // Data-only messages: title/body live in payload.data
+  const title = (payload.data && payload.data.title) || payload.notification?.title || 'Simpls';
+  const body = (payload.data && payload.data.body) || payload.notification?.body || '';
   self.registration.showNotification(title, {
     body,
     icon: '/pwa-192x192.png',
